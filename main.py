@@ -216,11 +216,19 @@ def draw_scene(buf):
     # 1. Sky gradient (peach at top to gold near horizon)
     draw_vertical_gradient(buf, (255, 182, 148), (255, 224, 158))
     
-    # 4. Sun: warmer and more golden with stronger soft glow
+    # 4. Sun: warmer and more golden with larger, stronger soft glow
     sun_x, sun_y = 280, 290
-    draw_radial_glow(buf, sun_x, sun_y, 260, (255, 215, 130), 200)
-    draw_radial_glow(buf, sun_x, sun_y, 150, (255, 190, 80), 230)
+    draw_radial_glow(buf, sun_x, sun_y, 320, (255, 215, 130), 220)
+    draw_radial_glow(buf, sun_x, sun_y, 180, (255, 190, 80), 240)
     fill_circle(buf, sun_x, sun_y, 75, 255, 230, 100, 255)
+
+    # Soft golden sparkle dots in the air near the sun
+    sparkles = [
+        (220, 240), (340, 220), (190, 310), (370, 330), (250, 180), (310, 380), (280, 200)
+    ]
+    for sp_x, sp_y in sparkles:
+        fill_circle(buf, sp_x, sp_y, 4, 255, 250, 200, 200)
+        fill_circle(buf, sp_x, sp_y, 2, 255, 255, 255, 240)
 
     # 5. Rainbow: raise saturation slightly so bands are visible but soft
     rainbow_colors = [
@@ -269,16 +277,30 @@ def draw_scene(buf):
     front_points.extend([(1024, 1024), (0, 1024)])
     fill_polygon(buf, front_points, 84, 153, 90, 255)
 
-    # Warm grass details / tiny flowers on front hill
-    for fx in range(50, 980, 120):
-        fy = 740 + int(20 * math.sin(fx))
-        draw_line(buf, fx, fy, fx, fy - 15, 60, 120, 70, 255)
-        fill_circle(buf, fx, fy - 16, 5, 255, 240, 180, 255)
-        fill_circle(buf, fx, fy - 16, 2, 255, 210, 100, 255)
+    # Fill empty foreground: scatter many small white/yellow flowers and grass tufts across front hill
+    for fx in range(30, 1010, 35):
+        fy = 720 - int(70 * math.cos(fx * 0.005) + 30 * math.sin(fx * 0.01)) + ((fx * 7) % 18)
+        # Grass tufts
+        draw_line(buf, fx, fy, fx - 4, fy - 14, 50, 110, 60, 255)
+        draw_line(buf, fx, fy, fx + 4, fy - 16, 65, 130, 75, 255)
+        if fx % 70 == 0:
+            # Yellow flower
+            fill_circle(buf, fx, fy - 18, 5, 255, 230, 100, 255)
+            fill_circle(buf, fx, fy - 18, 2, 255, 255, 200, 255)
+        elif fx % 50 == 0:
+            # White flower
+            fill_circle(buf, fx, fy - 16, 5, 245, 245, 255, 255)
+            fill_circle(buf, fx, fy - 16, 2, 255, 220, 100, 255)
 
-    # 3. Sunflower: bigger (~1.5x), moved higher above front hill line, thicker stem, bigger leaves
+    # Back hill grass details and flowers
+    for fx in range(50, 1000, 75):
+        fy = 620 - int(60 * math.sin(fx * 0.004 + 1.2) + 40 * math.cos(fx * 0.008)) + ((fx * 3) % 15)
+        draw_line(buf, fx, fy, fx, fy - 11, 90, 150, 90, 255)
+        fill_circle(buf, fx, fy - 13, 4, 255, 240, 180, 255)
+
+    # 3. Sunflower: tall one + second SMALL sunflower sprout ("baby" sunflower) beside it
     sprout_x, sprout_y = 380, 730
-    # Thicker stem (draw multiple lines / rounded rect)
+    # Thicker stem
     fill_rounded_rect(buf, sprout_x - 6, sprout_y - 180, 12, 180, 4, 82, 150, 70, 255)
     # Bigger leaves
     fill_ellipse(buf, sprout_x - 45, sprout_y - 90, 50, 18, 102, 176, 85, 255)
@@ -286,7 +308,6 @@ def draw_scene(buf):
 
     # Sunflower head at top of stem
     sf_x, sf_y = sprout_x, sprout_y - 200
-    # Bigger Petals (ring of ellipses)
     for angle_deg in range(0, 360, 20):
         rad = math.radians(angle_deg)
         px = sf_x + int(50 * math.cos(rad))
@@ -296,6 +317,18 @@ def draw_scene(buf):
     fill_circle(buf, sf_x, sf_y, 42, 115, 70, 35, 255)
     fill_circle(buf, sf_x - 6, sf_y - 6, 12, 145, 90, 50, 255)
 
+    # Baby sunflower beside the tall one
+    baby_x, baby_y = sprout_x + 75, sprout_y - 30
+    fill_rounded_rect(buf, baby_x - 4, baby_y - 90, 8, 90, 3, 82, 150, 70, 255)
+    fill_ellipse(buf, baby_x - 22, baby_y - 45, 25, 10, 102, 176, 85, 255)
+    baby_head_x, baby_head_y = baby_x, baby_y - 105
+    for angle_deg in range(0, 360, 30):
+        rad = math.radians(angle_deg)
+        px = baby_head_x + int(28 * math.cos(rad))
+        py = baby_head_y + int(28 * math.sin(rad))
+        fill_ellipse(buf, px, py, 16, 9, 255, 220, 60, 255)
+    fill_circle(buf, baby_head_x, baby_head_y, 22, 125, 75, 40, 255)
+
     # Ladybug on leaf
     lb_x, lb_y = sprout_x - 55, sprout_y - 92
     fill_ellipse(buf, lb_x, lb_y, 9, 7, 220, 50, 50, 255)
@@ -303,13 +336,18 @@ def draw_scene(buf):
     fill_circle(buf, lb_x + 3, lb_y - 2, 2, 30, 30, 30, 255)
     fill_circle(buf, lb_x + 3, lb_y + 2, 2, 30, 30, 30, 255)
 
-    # Butterfly near flower
-    bf_x, bf_y = sf_x - 85, sf_y - 30
-    fill_ellipse(buf, bf_x - 12, bf_y - 9, 14, 9, 255, 160, 200, 220)
-    fill_ellipse(buf, bf_x + 12, bf_y - 9, 14, 9, 255, 160, 200, 220)
-    fill_ellipse(buf, bf_x - 10, bf_y + 9, 11, 8, 255, 200, 120, 220)
-    fill_ellipse(buf, bf_x + 10, bf_y + 9, 11, 8, 255, 200, 120, 220)
-    draw_line(buf, bf_x, bf_y - 14, bf_x, bf_y + 14, 50, 50, 50, 255)
+    # Three butterflies in the air
+    butterflies = [
+        (sf_x - 85, sf_y - 30),
+        (210, 470),
+        (830, 490)
+    ]
+    for bf_x, bf_y in butterflies:
+        fill_ellipse(buf, bf_x - 12, bf_y - 9, 14, 9, 255, 160, 200, 220)
+        fill_ellipse(buf, bf_x + 12, bf_y - 9, 14, 9, 255, 160, 200, 220)
+        fill_ellipse(buf, bf_x - 10, bf_y + 9, 11, 8, 255, 200, 120, 220)
+        fill_ellipse(buf, bf_x + 10, bf_y + 9, 11, 8, 255, 200, 120, 220)
+        draw_line(buf, bf_x, bf_y - 14, bf_x, bf_y + 14, 50, 50, 50, 255)
 
     # Hero Robot (Centre-Right, LARGE, ~300px wide)
     bot_cx, bot_cy = 680, 650
@@ -337,18 +375,21 @@ def draw_scene(buf):
     fill_circle(buf, bot_cx + 42, head_cy - 18, 8, 255, 255, 255, 255)
     fill_circle(buf, bot_cx + 30, head_cy + 2, 4, 255, 255, 255, 255)
 
-    # 1. Mouth: clear upward SMILE (upward arc)
-    for sx_off in range(-14, 15):
-        sy_off = int(28 - 0.045 * (sx_off * sx_off))
-        buf.set_pixel(bot_cx + sx_off, head_cy + sy_off, 70, 80, 95, 255)
-        buf.set_pixel(bot_cx + sx_off, head_cy + sy_off + 1, 70, 80, 95, 255)
+    # Soft pink blush circles on cheeks for warmth
+    fill_circle(buf, bot_cx - 52, head_cy + 12, 14, 255, 165, 175, 190)
+    fill_circle(buf, bot_cx + 52, head_cy + 12, 14, 255, 165, 175, 190)
 
-    # 6. Arms: replace thin line-and-ball with short rounded-rectangle arms; left arm reaches watering can handle
-    # Left arm reaching watering can handle
+    # 1. Mouth: slightly bigger and warmer upward smile
+    for sx_off in range(-18, 19):
+        sy_off = int(26 - 0.035 * (sx_off * sx_off))
+        buf.set_pixel(bot_cx + sx_off, head_cy + sy_off, 60, 70, 85, 255)
+        buf.set_pixel(bot_cx + sx_off, head_cy + sy_off + 1, 60, 70, 85, 255)
+        buf.set_pixel(bot_cx + sx_off, head_cy + sy_off + 2, 60, 70, 85, 255)
+
+    # Arms
     fill_rounded_rect(buf, bot_cx - 155, bot_cy + 25, 45, 22, 10, 225, 222, 215, 255)
     fill_circle(buf, bot_cx - 155, bot_cy + 36, 12, 235, 232, 225, 255)
 
-    # Right arm resting
     fill_rounded_rect(buf, bot_cx + 110, bot_cy + 30, 45, 22, 10, 225, 222, 215, 255)
     fill_circle(buf, bot_cx + 155, bot_cy + 41, 12, 235, 232, 225, 255)
 
@@ -357,39 +398,40 @@ def draw_scene(buf):
     fill_circle(buf, bot_cx - 60, bot_cy + 167, 12, 50, 55, 65, 255)
     fill_circle(buf, bot_cx + 60, bot_cy + 167, 12, 50, 55, 65, 255)
 
-    # 2. Watering Can: bigger, clearly a watering can with rounded body, handle on top, spout angled up-left toward sunflower
-    wc_x, wc_y = bot_cx - 185, bot_cy + 15
-    # Watering can body (rounded rect)
-    fill_rounded_rect(buf, wc_x - 45, wc_y - 25, 80, 65, 20, 70, 140, 200, 255)
+    # 1. Watering Can: BIGGER classic watering can, handle on top, long spout angled up-left ending in flared rose head pointing at sunflower
+    wc_x, wc_y = bot_cx - 170, bot_cy - 10
+    # Watering can body (larger rounded rect)
+    fill_rounded_rect(buf, wc_x - 55, wc_y - 35, 95, 75, 24, 70, 140, 200, 255)
     # Handle on top
-    fill_rounded_rect(buf, wc_x - 10, wc_y - 52, 35, 30, 10, 90, 160, 220, 255)
+    fill_rounded_rect(buf, wc_x - 12, wc_y - 68, 42, 36, 12, 90, 160, 220, 255)
     
-    # Short tapered nozzle sticking out of can's upper-left side, angled up-left toward sunflower, with flared rose at tip
+    # Spout angled up-left toward sunflower
     fill_polygon(buf, [
-        (450, 642),
-        (455, 655),
-        (425, 585),
-        (418, 575)
+        (470, 615),
+        (478, 630),
+        (395, 520),
+        (385, 508)
     ], 70, 140, 200, 255)
-    # Small flared rose (sprinkler head) at tip
-    fill_ellipse(buf, 421, 580, 6, 10, 90, 160, 220, 255)
+    # Flared rose (sprinkler head) at tip
+    fill_ellipse(buf, 390, 514, 8, 14, 90, 160, 220, 255)
 
-    # Water stream: neat arc of 8 light-blue droplets in the air from spout tip down to sunflower head
+    # Clear ARC of BIGGER light-blue water droplets (9 larger dots falling from rose head down onto sunflower)
     air_droplets = [
-        (417, 576),
-        (412, 569),
-        (407, 561),
-        (401, 553),
-        (395, 546),
-        (389, 539),
-        (384, 533),
-        (380, 528)
+        (390, 514),
+        (388, 511),
+        (386, 510),
+        (384, 511),
+        (382, 514),
+        (381, 518),
+        (380, 522),
+        (380, 526),
+        (380, 530)
     ]
     for dx_p, dy_p in air_droplets:
-        fill_circle(buf, dx_p, dy_p, 4, 140, 210, 255, 240)
-        fill_circle(buf, dx_p, dy_p, 2, 200, 240, 255, 255)
+        fill_circle(buf, dx_p, dy_p, 6, 130, 205, 255, 240)
+        fill_circle(buf, dx_p, dy_p, 3, 210, 245, 255, 255)
 
-    # 1-2 tiny droplets on the petals
+    # Droplets on the petals
     petal_droplets = [
         (sf_x - 12, sf_y - 18),
         (sf_x + 15, sf_y + 12)
